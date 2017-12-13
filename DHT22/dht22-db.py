@@ -9,9 +9,14 @@ import sys
 import RPi.GPIO as GPIO 
 from time import sleep
 from time import gmtime, strftime 
+import datetime
+
 import Adafruit_DHT 
 import mysql.connector
- 
+import weatherlib as wl
+import wlutils
+import weatherplotlib as wlplot
+
 myAPI = "<your API code here>" 
 
 def getSensorData(): 
@@ -21,34 +26,85 @@ def getSensorData():
 def main(): 
    print 'starting...'
    
-   # connect to db
+   # connect to real_time_data db
    cnx = mysql.connector.connect(user='pi',passwd='dadopi', database='weather_station')
    cursor = cnx.cursor()
    
    add_value = ("INSERT INTO real_time_data "
-                "(temperature,humidity) "
-                "VALUES (%s, %s)")
+                "(temperature,humidity,dew_point,heat_index) "
+                "VALUES (%s, %s, %s, %s)")
+   # add_value to daily_data
+   add_daily_values = ("INSERT INTO daily_data "
+                   "(datatime,temperature_min,temperature_max,temperature_ave) "
+                   "VALUES (%s,%s,%s,%s)")
+
+   today = datetime.date.today()
 
    #open file
-   out_file = open("db.txt","w")
-
+   #out_file = open("db.txt","w")
+   #initialization 
+   print "running start @"
    print strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
+   RH, T = getSensorData()
+   if RH is not None and T is not None:
+       Tmax = T
+       Tmin = T
+       Tave = T
+       dt = wlutils.secs_from_midnight()
+
    while True: 
        RH, T = getSensorData() 
        if RH is not None and T is not None:
            #write on file
-           timestr=strftime("%Y-%m-%d %H:%M:%S",gmtime())
-           out_file.write('{0},{1:0.1f},{2:0.1f}\n'.format(timestr, T, RH))
-           out_file.flush()
+           #timestr=strftime("%Y-%m-%d %H:%M:%S",gmtime())
+           #out_file.write('{0},{1:0.1f},{2:0.1f}\n'.format(timestr, T, RH))
+           #out_file.flush()
            
-           #insert to db
-           value = (T,RH)
+           Tdp = wl.dew_point(T,RH)
+           HI = wl.heat_index(T,RH)
+
+           #insert to db - real time data
+           value = (T, RH, Tdp, HI)
+
            cursor.execute(add_value, value)
                  
            # Make sure data is committed to the database
            cnx.commit()
 
+           if today == datetime.date.today():
+               if T < Tmin:
+                   Tmin = T
+               if T > Tmax:
+                   Tmax = T
+               
+               # compute average
+               Tave = Tave*dt + T*(wlutils.secs_from_midnight()-dt)
+               dt = wlutils.secs_from_midnight()
+               Tave = Tave/dt
+               #print("today actuals:")
+               #print(Tmin,Tmax,Tave)
+           else:
+               print("day changed: update day_table")
+               
+               # update daily_data table
+               values = (today,Tmin,Tmax,Tave)
+               cursor.execute(add_daily_values,values)
+               cnx.commit()
+
+               print("day changed: reset Tmin-Tmax")
+               Tmax=T
+               Tmin=T
+               Tave=T
+               
+               dt = wlutils.secs_from_midnight()
+               today = datetime.date.today()
+           
+           tmax = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+           tmin = (datetime.datetime.now() - datetime.timedelta(days=3)).strftime("%Y-%m-%d %H:%M:%S")
+           wlplot.plot_field(tmin, tmax, "temperature")
+           wlplot.plot_field(tmin, tmax, "humidity")
            sleep(60)
+
        else:
            print('Failed to get reading. Try again!')
  
