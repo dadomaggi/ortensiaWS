@@ -54,7 +54,7 @@ def main():
 
    while True: 
        RH, T = getSensorData() 
-       if RH is not None and T is not None:
+       if RH is not None and T is not None and (RH <100):
            #write on file
            #timestr=strftime("%Y-%m-%d %H:%M:%S",gmtime())
            #out_file.write('{0},{1:0.1f},{2:0.1f}\n'.format(timestr, T, RH))
