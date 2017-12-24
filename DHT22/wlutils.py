@@ -24,3 +24,28 @@ def medfilt (x, k):
         y[:-j,-(i+1)] = x[j:]
         y[-j:,-(i+1)] = x[-1]
     return np.median (y, axis=1)
+
+def fwrite(now,Tmin,Tmax,Tave,T,RH):
+
+    base_file = open("/home/pi/workspace/WS/www/base-index.html","r")
+    text = base_file.readlines()
+    base_file.close()
+
+    strng = "\t<table>\n"\
+    "\t\t<tr><td>time</td><td> {} </td></tr>\n"\
+    "\t\t<tr><td>Actual Temp.</td><td> {:4.1f} </td></tr>\n"\
+    "\t\t<tr><td>Actual RH</td><td> {:5.2f} </td></tr>\n"\
+    "\t\t<tr><td>Tmin</td><td> {:4.1f} </td></tr>\n"\
+    "\t\t<tr><td>Tmax</td><td> {:4.1f} </td></tr>\n"\
+    "\t\t<tr><td>Tave</td><td> {:4.1f} </td></tr>\n"\
+    "\t</table>\n".format(now, T, RH, Tmin, Tmax, Tave )
+    
+    out_str = ''.join(text[:7])+strng+''.join(text[7:9])
+    #print(out_str)
+
+    out_file = open("/home/pi/workspace/WS/www/index.html","w")
+    out_file.write(out_str)
+    out_file.close()
+
+    return
+

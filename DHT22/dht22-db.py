@@ -103,6 +103,7 @@ def main():
            tmin = (datetime.datetime.now() - datetime.timedelta(days=3)).strftime("%Y-%m-%d %H:%M:%S")
            wlplot.plot_field(tmin, tmax, "temperature")
            wlplot.plot_field(tmin, tmax, "humidity")
+           wlutils.fwrite(tmax,Tmin,Tmax,Tave,T,RH)
            sleep(60)
 
        else:
