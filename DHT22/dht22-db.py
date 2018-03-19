@@ -16,6 +16,7 @@ import mysql.connector
 import weatherlib as wl
 import wlutils
 import weatherplotlib as wlplot
+import owm_api as owm 
 
 myAPI = "<your API code here>" 
 
@@ -83,8 +84,12 @@ def main():
                Tave = Tave/dt
                #print("today actuals:")
                #print(Tmin,Tmax,Tave)
+               wlplot.plot_year()
            else:
                print("day changed: update day_table")
+               
+               # update the forecast - OpenWeatherMap
+               owm.update_forecast()
                
                # update daily_data table
                values = (today,Tmin,Tmax,Tave)
@@ -98,13 +103,16 @@ def main():
                
                dt = wlutils.secs_from_midnight()
                today = datetime.date.today()
-           
+               
+               # update year graph
+               wlplot.plot_year()
+
            tmax = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
            tmin = (datetime.datetime.now() - datetime.timedelta(days=3)).strftime("%Y-%m-%d %H:%M:%S")
            wlplot.plot_field(tmin, tmax, "temperature")
            wlplot.plot_field(tmin, tmax, "humidity")
            wlutils.fwrite(tmax,Tmin,Tmax,Tave,T,RH)
-           sleep(60)
+           sleep(300)
 
        else:
            print('Failed to get reading. Try again!')
