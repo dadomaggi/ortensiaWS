@@ -5,6 +5,7 @@ import json
 from pyowm import OWM
 import pandas as pd
 import subprocess
+import os
 
 def update_forecast():
     API_key = 'ffdb44d857dd60cbdc3016e1ff59536b'
@@ -18,7 +19,8 @@ def update_forecast():
         f_time.append(weather.get_reference_time('iso'))
         
     df = pd.DataFrame(f_temp,index=f_time,columns=['temp'])
-    df.to_csv('forecast.csv', sep=',', decimal='.', index=True)
+    fname = os.environ["WSDATAPATH"]+"/forecast.csv" 
+    df.to_csv(fname, sep=',', decimal='.', index=True)
     subprocess.call('head -n 9 forecast.csv | tail -n 8 >> one_day_forecast.csv',shell=True)
     
 

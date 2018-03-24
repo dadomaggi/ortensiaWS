@@ -16,20 +16,19 @@
 
 from setuptools import setup
 
-with open("README", 'r') as f:
+with open("README.md", 'r') as f:
     long_description = f.read()
     
 setup(
     name='DHT22',
-    version='1.0',
-    description='A useful module',
-    license="MIT",
+    version='0.0.1',
+    description='A useful module for DHT22 sensor',
     long_description=long_description,
-    author='Man Foo',
-    author_email='foomail@foo.com',
-    url="http://www.foopackage.com/",
+    author='Davide Maggi',
+    author_email='davide.maggi@tiscali.it',
+    url="http://dmaggi.ddns.net",
     packages=['DHT22'],  #same as name
-    #install_requires=['pandas', 'numpy'], #external packages as dependencies
+    install_requires=['pandas', 'numpy'], #external packages as dependencies
     #scripts=[
     #    'bin/dht22-db',
     #]

@@ -8,6 +8,7 @@ import wlutils as wl
 import numpy as np
 from pyowm import OWM
 import time
+import os
 
 def plot_year():
     db_connection = sql.connect(database='weather_station', user='pi', password='dadopi')
@@ -24,13 +25,14 @@ def plot_year():
     fig, ax = plt.subplots(figsize=(16, 3))
     ax.plot(df[0],wl.medfilt(array,5))
     
-    fc = pd.read_csv('ave.csv', sep=',', decimal='.',index_col=0)
+    fname = os.environ["WSDATAPATH"]+"ave.csv"
+    fc = pd.read_csv(fname, sep=',', decimal='.',index_col=0)
     ax.plot(fc.index,fc.values)
                             
     
     plt.grid()
-
-    fname = "/home/pi/workspace/WS/www/img/img-year.png"
+    
+    fname = os.environ["WWWDATAPATH"]+"img/img-year.png"
     plt.savefig(fname)
     plt.close()
 
@@ -52,8 +54,8 @@ def plot_field(time_min,time_max,field):
     plt.grid()
  
     if field=='temperature':
-        
-        fc = pd.read_csv('forecast.csv', sep=',', decimal='.',index_col=0)
+        fname = os.environ["WSDATAPATH"]+"/forecast.csv"
+        fc = pd.read_csv(fname, sep=',', decimal='.',index_col=0)
         #fc.plot(ax=ax)
         ax.plot(fc.index,fc.values)
 
@@ -71,7 +73,7 @@ def plot_field(time_min,time_max,field):
     plt.grid(b=True, which='major', color='k', linestyle='-',linewidth=1)
 
     ax.set_ylabel(field)
-    fname = "/home/pi/workspace/WS/www/img/img-"+field+".png"
+    fname = os.environ["WWWDATAPATH"]+"/img/img-"+field+".png"
     plt.savefig(fname)
     plt.close()
     return None

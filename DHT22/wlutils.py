@@ -2,6 +2,7 @@
 
 import datetime
 import numpy as np
+import os
 
 def secs_from_midnight():
     now = datetime.datetime.now()
@@ -26,8 +27,9 @@ def medfilt (x, k):
     return np.median (y, axis=1)
 
 def fwrite(now,Tmin,Tmax,Tave,T,RH):
-
-    base_file = open("/home/pi/workspace/WS/www/base-index.html","r")
+    
+    fname = os.environ["WWWDATAPATH"]+"/base-index.html"
+    base_file = open(fname,"r")
     text = base_file.readlines()
     base_file.close()
 
@@ -43,7 +45,8 @@ def fwrite(now,Tmin,Tmax,Tave,T,RH):
     out_str = ''.join(text[:7])+strng+''.join(text[7:9])
     #print(out_str)
 
-    out_file = open("/home/pi/workspace/WS/www/index.html","w")
+    fname = os.environ["WWWDATAPATH"]+"/index.html"
+    out_file = open(fname,"w")
     out_file.write(out_str)
     out_file.close()
 
