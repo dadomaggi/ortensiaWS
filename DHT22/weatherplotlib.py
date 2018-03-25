@@ -25,14 +25,14 @@ def plot_year():
     fig, ax = plt.subplots(figsize=(16, 3))
     ax.plot(df[0],wl.medfilt(array,5))
     
-    fname = os.environ["WSDATAPATH"]+"ave.csv"
+    fname = os.environ["WSDATAPATH"]+"/ave.csv"
     fc = pd.read_csv(fname, sep=',', decimal='.',index_col=0)
     ax.plot(fc.index,fc.values)
                             
     
     plt.grid()
     
-    fname = os.environ["WWWDATAPATH"]+"img/img-year.png"
+    fname = os.environ["WWWDATAPATH"]+"/img/img-year.png"
     plt.savefig(fname)
     plt.close()
 
