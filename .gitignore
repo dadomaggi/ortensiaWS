@@ -1,4 +1,7 @@
 build/
 dist/
 *egg-info/
+*.pyc
+www/index.html
 www/img/
+data/forecast.csv

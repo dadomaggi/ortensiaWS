@@ -17,6 +17,7 @@ import weatherlib as wl
 import wlutils
 import weatherplotlib as wlplot
 import owm_api as owm 
+import argparse
 
 myAPI = "<your API code here>" 
 
@@ -27,6 +28,14 @@ def getSensorData():
 def main(): 
    print 'starting...'
    
+   parser = argparse.ArgumentParser(description='Process some integers.')
+   parser.add_argument('--dry-run', action='store_true', help='dry-run mode: do not update the databases')
+
+   #args = vars(parser.parse_args())
+   args = parser.parse_args()
+   if args.dry_run:
+       print("dry-run turned on")
+
    # connect to real_time_data db
    cnx = mysql.connector.connect(user='pi',passwd='dadopi', database='weather_station')
    cursor = cnx.cursor()
@@ -70,7 +79,8 @@ def main():
            cursor.execute(add_value, value)
                  
            # Make sure data is committed to the database
-           cnx.commit()
+           if not args.dry_run:
+               cnx.commit()
 
            if today == datetime.date.today():
                if T < Tmin:
@@ -82,9 +92,11 @@ def main():
                Tave = Tave*dt + T*(wlutils.secs_from_midnight()-dt)
                dt = wlutils.secs_from_midnight()
                Tave = Tave/dt
-               #print("today actuals:")
-               #print(Tmin,Tmax,Tave)
+               print("today actuals:")
+               print(Tmin,Tmax,Tave)
+               #wlplot.plot_month()
                #wlplot.plot_year()
+
                #owm.update_forecast()
            else:
                print("day changed: update day_table")
@@ -95,7 +107,8 @@ def main():
                # update daily_data table
                values = (today,Tmin,Tmax,Tave)
                cursor.execute(add_daily_values,values)
-               cnx.commit()
+               if not args.dry_run:
+                   cnx.commit()
 
                print("day changed: reset Tmin-Tmax")
                Tmax=T
@@ -107,11 +120,13 @@ def main():
                
                # update year graph
                wlplot.plot_year()
+               wlplot.plot_month()
 
            tmax = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
            tmin = (datetime.datetime.now() - datetime.timedelta(days=3)).strftime("%Y-%m-%d %H:%M:%S")
            wlplot.plot_field(tmin, tmax, "temperature")
            wlplot.plot_field(tmin, tmax, "humidity")
+           wlplot.plot_forecast(tmin,tmax)
            wlutils.fwrite(tmax,Tmin,Tmax,Tave,T,RH)
            sleep(300)
 

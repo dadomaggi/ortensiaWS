@@ -42,7 +42,7 @@ def fwrite(now,Tmin,Tmax,Tave,T,RH):
     "\t\t<tr><td>Tave</td><td> {:4.1f} </td></tr>\n"\
     "\t</table>\n".format(now, T, RH, Tmin, Tmax, Tave )
     
-    out_str = ''.join(text[:7])+strng+''.join(text[7:9])
+    out_str = ''.join(text[:16])+strng+''.join(text[16:18])
     #print(out_str)
 
     fname = os.environ["WWWDATAPATH"]+"/index.html"
