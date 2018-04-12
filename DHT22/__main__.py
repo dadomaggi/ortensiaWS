@@ -17,6 +17,7 @@ import weatherlib as wl
 import wlutils
 import weatherplotlib as wlplot
 import owm_api as owm 
+import argparse
 
 myAPI = "<your API code here>" 
 
@@ -26,7 +27,27 @@ def getSensorData():
 
 def main(): 
    print 'starting...'
-   
+
+   tmax = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+   tmin = (datetime.datetime.now() - datetime.timedelta(days=3)).strftime("%Y-%m-%d %H:%M:%S")
+
+
+   parser = argparse.ArgumentParser(description='Process some integers.')
+   parser.add_argument('--dry-run', action='store_true', help='dry-run mode: do not update the databases')
+   parser.add_argument('--plot-and-exit', action='store_true', help='dry-run mode: do not update the databases')
+
+   #args = vars(parser.parse_args())
+   args = parser.parse_args()
+   if args.dry_run:
+       print("dry-run turned on")
+
+   if args.plot_and_exit:
+       print("plot and exit mode")
+       wlplot.plot_year()
+       wlplot.plot_month()
+       wlplot.plot_forecast(tmin,tmax)
+       exit()
+
    # connect to real_time_data db
    cnx = mysql.connector.connect(user='pi',passwd='dadopi', database='weather_station')
    cursor = cnx.cursor()
@@ -43,10 +64,15 @@ def main():
 
    #open file
    #out_file = open("db.txt","w")
+   owm.update_forecast()
+   wlplot.plot_year()
+   wlplot.plot_month()
+   
    #initialization 
    print "running start @"
    print strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
    RH, T = getSensorData()
+   
    if RH is not None and T is not None:
        Tmax = T
        Tmin = T
@@ -70,7 +96,8 @@ def main():
            cursor.execute(add_value, value)
                  
            # Make sure data is committed to the database
-           cnx.commit()
+           if not args.dry_run:
+               cnx.commit()
 
            if today == datetime.date.today():
                if T < Tmin:
@@ -95,7 +122,8 @@ def main():
                # update daily_data table
                values = (today,Tmin,Tmax,Tave)
                cursor.execute(add_daily_values,values)
-               cnx.commit()
+               if not args.dry_run:
+                   cnx.commit()
 
                print("day changed: reset Tmin-Tmax")
                Tmax=T
@@ -112,6 +140,7 @@ def main():
            tmin = (datetime.datetime.now() - datetime.timedelta(days=3)).strftime("%Y-%m-%d %H:%M:%S")
            wlplot.plot_field(tmin, tmax, "temperature")
            wlplot.plot_field(tmin, tmax, "humidity")
+           wlplot.plot_forecast(tmin,tmax)
            wlutils.fwrite(tmax,Tmin,Tmax,Tave,T,RH)
            sleep(300)
 

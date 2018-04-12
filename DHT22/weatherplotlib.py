@@ -24,13 +24,13 @@ def plot_year():
     array = ndarray[:,1]
 
     fig, ax = plt.subplots(figsize=(6, 3))
-    ax.plot(df[0],wl.medfilt(array,5))
+    ax.plot(df[0],wl.medfilt(array,1))
     
     fname = os.environ["WSDATAPATH"]+"/ave.csv"
     fc = pd.read_csv(fname, sep=',', decimal='.',index_col=0)
     ax.plot(fc.index,fc.values)
                             
-    
+    print "print year temperature"
     plt.grid()
     
     fname = os.environ["WWWDATAPATH"]+"/img/img-year.png"
@@ -47,7 +47,6 @@ def plot_month():
     fourty_days_ago = datetime.datetime.fromtimestamp(ts-864000).strftime('%Y-%m-%d')
     str = "Select datatime,temperature FROM real_time_data where datatime>=\""+one_month_ago+"\""
     #str="Select datatime,temperature_ave FROM daily_data where datatime>=\"2018-01-01\"" 
-    
 
     db_cursor.execute(str)
     df = pd.DataFrame(db_cursor.fetchall())
@@ -93,9 +92,11 @@ def plot_forecast(time_min,time_max):
     plt.grid()
                                                 
     fname = os.environ["WSDATAPATH"]+"/forecast.csv"
-    fc = pd.read_csv(fname, sep=',', decimal='.',index_col=0)
+    fc = pd.read_csv(fname, sep=',', decimal='.',index_col=None)
     #fc.plot(ax=ax)
-    ax.plot(fc.index,fc.values)
+
+    fc['time'] =  pd.to_datetime(fc['time'], format='%Y-%m-%d %H:%M:%S')
+    ax.plot(fc['time'],fc['temp'])
 
     #fig.autofmt_xdate()
     plt.minorticks_on()
@@ -110,9 +111,16 @@ def plot_forecast(time_min,time_max):
     plt.grid(b=True, which='major', color='k', linestyle='-',linewidth=1)
 
     ax.set_ylabel('forecast')
+
+    #ax2 = ax.twinx()
+    markerline, stemlines, baseline = ax.stem(fc['time'],fc['rain'],markerfmt=" ")
+    plt.setp(stemlines, 'linewidth', 8, 'markeredgewidth',0)
+    
     fname = os.environ["WWWDATAPATH"]+"/img/img-forecast.png"
     plt.savefig(fname)
     plt.close()
+
+    print "plot forecast"
 
     return None
 
